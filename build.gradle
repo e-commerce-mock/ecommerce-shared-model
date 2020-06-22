@@ -1,0 +1,101 @@
+buildscript {
+    repositories {
+        maven { url "https://plugins.gradle.org/m2/" }
+    }
+    dependencies {
+        classpath "org.owasp:dependency-check-gradle:5.2.1"
+        classpath "gradle.plugin.com.github.spotbugs:spotbugs-gradle-plugin:2.0.0"
+    }
+}
+
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'idea'
+}
+
+repositories {
+    maven { url "https://maven.aliyun.com/repository/central" }
+    maven { url "https://mymavenrepo.com/repo/2w5k9sU2AsKfaYehyqno/" }
+}
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+dependencies {
+    //lombok
+    compileOnly 'org.projectlombok:lombok:1.18.8'
+    annotationProcessor 'org.projectlombok:lombok:1.18.8'
+
+    implementation('com.google.guava:guava:27.0.1-jre')
+    implementation('org.apache.commons:commons-lang3:3.9')
+    implementation('org.apache.commons:commons-collections4:4.4')
+
+    api('javax.validation:validation-api:2.0.1.Final')
+    api('net.javacrumbs.shedlock:shedlock-core:2.5.0')
+    implementation('javax.inject:javax.inject:1')
+
+
+    //jackson dependencies
+    implementation('com.fasterxml.jackson.module:jackson-module-parameter-names:2.9.9')
+    implementation('com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.9.9')
+    implementation('com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.9.9')
+    api('com.fasterxml.jackson.core:jackson-core:2.9.9')
+    api('com.fasterxml.jackson.core:jackson-databind:2.9.9')
+    api('com.fasterxml.jackson.core:jackson-annotations:2.9.9')
+
+
+    //test dependencies
+    testImplementation platform('org.junit:junit-bom:5.5.1')
+    testImplementation("org.junit.jupiter:junit-jupiter-api")
+    testImplementation('org.junit.jupiter:junit-jupiter-engine')
+    testImplementation('org.mockito:mockito-junit-jupiter:2.26.0')
+}
+
+
+configurations.all {
+    exclude group: "junit", module: "junit"
+    exclude group: "org.assertj", module: "assertj-core"
+}
+
+tasks.withType(Test) {
+    useJUnitPlatform()
+}
+
+wrapper {
+    gradleVersion = '5.6'
+}
+
+
+task sourcesJar(type: Jar) {
+    from sourceSets.main.allJava
+    archiveClassifier = 'sources'
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = rootProject.group
+            artifactId = rootProject.artifact
+            version = rootProject.version
+            from components.java
+            artifact sourcesJar {
+                classifier "sources"
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            url = "https://mymavenrepo.com/repo/Cd07WrKAtJ9Kq7PBaTuf/"
+        }
+    }
+}
+
+
+apply from: "${rootProject.projectDir}/gradle/dependency-check/dependency-check.gradle"
+apply from: "${rootProject.projectDir}/gradle/spotbugs/spotbugs.gradle"
+apply from: "${rootProject.projectDir}/gradle/checkstyle/checkstyle.gradle"
+apply from: "${rootProject.projectDir}/gradle/git-hooks/git-hooks.gradle"
+apply from: "${rootProject.projectDir}/gradle/version-info.gradle"
+apply from: "${rootProject.projectDir}/gradle/jacoco.gradle"
